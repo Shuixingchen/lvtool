@@ -12,20 +12,23 @@ const ServiceFee = () => {
     const fee = parseFloat(values.fee);
     const days = parseFloat(values.days);
 
-    // 计算服务费率
-    const feeRate = fee / amount;
-    
-    // 计算年化利率（单利）
-    const simpleAnnualRate = (feeRate * 365 / days) * 100;
-    
-    // 计算年化利率（复利）
-    const compoundAnnualRate = (Math.pow(1 + feeRate, 365 / days) - 1) * 100;
+    // 构建现金流数组：首期为实际到手金额（贷款金额-服务费），最后一期为还款金额（贷款金额）
+    const cashflows = [-(amount - fee)];
+    for (let i = 0; i < days - 1; i++) {
+      cashflows.push(0);
+    }
+    cashflows.push(amount);
+
+    // 计算单利年化利率
+    const actualAmount = amount - fee; // 实际到手金额
+    const dailyRate = (fee / actualAmount / days) * 100; // 日利率
+    const monthlyRate = dailyRate * 30; // 月利率
+    const annualRate = dailyRate * 365; // 年化利率
 
     setResults({
-      feeRate: (feeRate * 100).toFixed(2),
-      simpleAnnualRate: simpleAnnualRate.toFixed(2),
-      compoundAnnualRate: compoundAnnualRate.toFixed(2),
-      dailyFee: (fee / days).toFixed(2)
+      dailyRate: dailyRate.toFixed(4),
+      monthlyRate: monthlyRate.toFixed(4),
+      annualRate: annualRate.toFixed(2)
     });
   };
 
@@ -47,8 +50,11 @@ const ServiceFee = () => {
         onValuesChange={handleValuesChange}
         layout="vertical"
       >
+        <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
+          例子：贷款1000，服务费200，5天还款
+        </Text>
         <Form.Item
-          label="提现金额 (元)"
+          label="贷款金额 "
           name="amount"
           rules={[{ required: true, message: '请输入提现金额' }]}
         >
@@ -56,7 +62,7 @@ const ServiceFee = () => {
         </Form.Item>
 
         <Form.Item
-          label="服务费 (元)"
+          label="服务费 (贷款总额-下款金额)"
           name="fee"
           rules={[{ required: true, message: '请输入服务费' }]}
         >
@@ -79,16 +85,13 @@ const ServiceFee = () => {
       {results && (
         <Card title="计算结果" className="result-card">
           <div className="form-row">
-            <Text>服务费率: {results.feeRate}%</Text>
+            <Text>日利率: {results.dailyRate}%</Text>
           </div>
           <div className="form-row">
-            <Text>日均服务费: {results.dailyFee} 元</Text>
+            <Text>月利率: {results.monthlyRate}%</Text>
           </div>
           <div className="form-row">
-            <Text>年化利率（单利）: {results.simpleAnnualRate}%</Text>
-          </div>
-          <div className="form-row">
-            <Text>年化利率（复利）: {results.compoundAnnualRate}%</Text>
+            <Text>年化利率: {results.annualRate}%</Text>
           </div>
         </Card>
       )}

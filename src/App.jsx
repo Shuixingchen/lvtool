@@ -18,7 +18,7 @@ const App = () => {
     },
     {
       key: '3',
-      label: '服务费年化计算',
+      label: '服务费/高炮计算',
       children: <ServiceFee />,
     },
   ];
